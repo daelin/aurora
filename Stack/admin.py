@@ -1,7 +1,21 @@
 from django.contrib import admin
 from Stack.models import *
+from django import forms
+
+class StackForm(forms.ModelForm):
+    class Meta:
+        model = Stack
+        exclude = []
+
+    def clean(self):
+        start_date = self.cleaned_data.get('start_date')
+        end_date = self.cleaned_data.get('end_date')
+        if start_date > end_date:
+            raise forms.ValidationError('Start Date cannot be after End Date')
+        return self.cleaned_data
 
 class StackAdmin(admin.ModelAdmin):
+    form = StackForm
     fieldsets = [
         (
             None, {
