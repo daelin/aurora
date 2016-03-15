@@ -112,7 +112,6 @@
 	               comm.</td>
 	        </tr>
 	    {% for tutor in tutors %}
-			{% if tutor.id > 780 and tutor.id < 808 %}
 		        <tr style="background:{%cycle '#eee' 'white'%}">
 		            <td>
 		                {{ tutor.first_name }} {{tutor.last_name}}
@@ -127,7 +126,6 @@
 		                {{ tutor.comments }}
 		            </td>
 		        </tr>
-			{% endif %}
 	    {% endfor %}
 	    </table>
 		<br><br>
