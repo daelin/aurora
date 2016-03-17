@@ -670,6 +670,7 @@ def load_reviews(request, course_short_title=None):
                               RequestContext(request))
 
 
+@DeprecationWarning
 @require_POST
 @csrf_exempt
 @aurora_login_required()
