@@ -1,6 +1,5 @@
 import json
 from datetime import datetime
-from random import randint
 from django.shortcuts import render_to_response
 from django.template import RequestContext
 from django.http import HttpResponse, Http404
@@ -32,11 +31,9 @@ def create_context_review(request):
             raise Http404
         review = Review.get_open_review(challenge, user)
         if not review:
-            # number of hours needed to pass until elaboration is applicable as candidate
-            offset = randint(ReviewConfig.get_candidate_offset_min(), ReviewConfig.get_candidate_offset_max())
-            review_candidate = Elaboration.get_review_candidate(challenge, user, offset)
+            review_candidate = Elaboration.get_review_candidate(challenge, user)
             if review_candidate:
-                review = Review(elaboration=review_candidate, reviewer=user)
+                review = Review(elaboration=review_candidate['candidate'], reviewer=user, chosen_by=review_candidate['chosen_by'])
                 review.save()
             else:
                 return data
@@ -50,6 +47,35 @@ def create_context_review(request):
 @aurora_login_required()
 def review(request, course_short_title):
     data = create_context_review(request)
+    data['course'] = Course.get_or_raise_404(course_short_title)
+    return render_to_response('review.html', data, context_instance=RequestContext(request))
+
+
+def create_context_extra_review(request):
+    data = {}
+    if 'id' in request.GET:
+        user = RequestContext(request)['user']
+        challenge = Challenge.objects.get(pk=request.GET.get('id'))
+        elaboration = Elaboration.objects.get(pk=request.GET.get('elaboration_id'))
+        if not challenge.is_enabled_for_user(user):
+            raise Http404
+        if not challenge.submitted_by_user(user):
+            raise Http404
+
+        review = Review.get_open_review(challenge, user)
+        if not review:
+            review = Review(elaboration=elaboration, reviewer=user, chosen_by='extra_review')
+            review.save()
+
+        data['review'] = review
+        data['stack_id'] = challenge.get_stack().id
+        review_questions = ReviewQuestion.objects.filter(challenge=challenge).order_by("order")
+        data['questions'] = review_questions
+    return data
+
+@aurora_login_required()
+def extra_review(request, course_short_title):
+    data = create_context_extra_review(request)
     data['course'] = Course.get_or_raise_404(course_short_title)
     return render_to_response('review.html', data, context_instance=RequestContext(request))
 
