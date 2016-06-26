@@ -66,3 +66,13 @@ function submit_form(event) {
     });
 }
 
+function create_new_feed_token(url) {
+    $.ajax({
+        url: url,
+        type: 'GET',
+        dataType: 'json',
+    }).done(function(data) {
+        $('#feed_token').val(data.token);
+    })
+}
+
